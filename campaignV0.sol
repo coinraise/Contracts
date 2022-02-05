@@ -23,6 +23,18 @@ contract Campaign {
   */
   address public admin;
 
+  /*
+    The fee percentage that goes to coinraise, scaled up by 100
+    100 = 1% fee
+    25 = 0.25% fee
+  */
+  uint32 public fee = 25;
+
+  /*
+    The account that recieves fees
+  */
+  address public feeBenefactor;
+
 
   //~~~~~~~~Campaign Params~~~~~~~~
 
