@@ -1,5 +1,6 @@
 // contact coinraiseme@protonmail.com for fund recovery (funds may not be recoverable in all circumstances)
 pragma solidity ^0.8.11;
+import "./IERC20.sol";
 
 contract Campaign {
   //~~~~~~~~~Constants~~~~~~~~~
@@ -141,7 +142,8 @@ contract Campaign {
   function donate(address _donor, uint256 _amount) public onlyTransferrer {
     require(block.timestamp >= deadline, "Cannot donate, campaign is already finished");
     require(_amount + totalDonations < fundingMax, "Donation would exceed the funding maximum");
-    //TODO sanity check that dai balance is >= donations require(totalDonations >= );
+    //sanity check that dai balance is >= donations 
+    require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations);
 
     donations[_donor] += _amount;
     totalDonations += _amount;
@@ -152,9 +154,10 @@ contract Campaign {
     require(block.timestamp > deadline, "Cannot withdraw, this campaign is not finished yet");
     require(totalDonations >= fundingGoal, "Cannot withdraw, this campaign did not reach it's goal");
     
+    //transfer DAI to owner
+    uint256 transferAmount = availableFunds;
     availableFunds = 0;
-    //TODO transfer DAI to owner
-
+    IERC20(daiAddress).transfer(owner, transferAmount);
   }
 
   function withdrawDoner() public {
@@ -165,17 +168,21 @@ contract Campaign {
     }
 
     //all checks passed
-    uint256 amount = donations[msg.sender];
-    availableFunds -= amount;
+    uint256 transferAmount = donations[msg.sender];
+    availableFunds -= transferAmount;
     donations[msg.sender] = 0;
 
-    //TODO transfer dai to msg.sender
+    //transfer dai to msg.sender
+    IERC20(daiAddress).transfer(msg.sender, transferAmount);
   }
 
   function withdrawAdmin(address _token, uint256 _amount) public {
     require(msg.sender == admin, "only CoinRaise admin can call this function");
     require(block.timestamp > deadline + 24 weeks, "admin cannot claim forgotten funds before 6 months past the deadline");
 
-    //TODO transfer ERC20 to admin
+    if(_token == daiAddress) {
+      availableFunds -= _amount;
+    }
+    IERC20(_token).transfer(admin, _amount);
   }
 }
