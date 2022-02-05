@@ -1,0 +1,22 @@
+{
+  "name": "coinraise-contracts",
+  "version": "1.0.0",
+  "description": "smart contracts for non-custodial fundraising with coinraise",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coinraise/Contracts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/coinraise/Contracts/issues"
+  },
+  "homepage": "https://github.com/coinraise/Contracts#readme",
+  "dependencies": {
+    "openzeppelin-solidity": "^4.4.2"
+  }
+}
