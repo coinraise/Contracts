@@ -1,9 +1,10 @@
 // contact coinraiseme@protonmail.com for fund recovery (funds may not be recoverable in all circumstances)
-
 pragma solidity ^0.8.11;
 
 contract Campaign {
   //~~~~~~~~~Constants~~~~~~~~~
+
+  address public daiAddress;
 
   /*
     A peripheral contract that transferrers DAI to the campaign contracts
@@ -68,7 +69,7 @@ contract Campaign {
     Donations that cause the campaign to exceed this maximum will be rejected.
     Sending funds directly to this campaign contract without using the donate() function will have 
       no effect on donation tracking and the funds will not be claimable by the owner. 
-      A CoinRaise admin may be able to reclaim those funds ~6 months after the deadline
+      A CoinRaise admin may be able to reclaim those funds ~6 months after the deadline.
   */
   uint256 public fundingMax;
 
@@ -95,6 +96,10 @@ contract Campaign {
   */
   uint256 totalDonations;
 
+  /*
+    This variable will be flipped to true when the owner claims funds
+  */
+  bool claimed; 
 
   //~~~~~~~~~~Safety~~~~~~~~~~
 
@@ -122,7 +127,50 @@ contract Campaign {
     deadline = _deadline;
     fundingGoal = _fundingGoal;
     fundingMax = _fundingMax;
+    claimed = false;
   }
 
-  function donate(address _donor, uint256 _amount)
+  /*
+
+  */
+  function donate(address _donor, uint256 _amount) public onlyTransferrer {
+    require(block.timestamp >= deadline, "Cannot donate, campaign is already finished");
+    require(_amount + totalDonations < fundingMax, "Donation would exceed the funding maximum");
+    //TODO sanity check that dai balance is >= donations require(totalDonations >= );
+
+    donations[_donor] += _amount;
+    totalDonations += _amount;
+  }
+
+  function withdrawOwner() public onlyOwner {
+    require(block.timestamp > deadline, "Cannot withdraw, this campaign is not finished yet");
+    require(totalDonations >= fundingGoal, "Cannot withdraw, this campaign did not reach it's goal");
+    require(claimed == false, "Cannot withdraw, owner already claimed funds");
+    
+    claimed = true;
+    //TODO transfer DAI to owner
+
+  }
+
+  function withdrawDoner() public {
+    require(block.timestamp > deadline, "Cannot withdraw, this campaign isn't over yet");
+    // if the funding goal was reached, require a 4 week wait period for owner to claim funds
+    if(totalDonations >= fundingGoal) {
+      require(block.timestamp > deadline + 4 weeks, "Cannot withdraw, 4 week waiting period has not passed");
+    }
+
+    //all checks passed
+    uint256 amount = donations[msg.sender];
+    totalDonations -= amount;
+    donations[msg.sender] = 0;
+
+    //TODO transfer dai to msg.sender
+  }
+
+  function withdrawAdmin(address _token, uint256 _amount) public {
+    require(msg.sender == admin, "only CoinRaise admin can call this function");
+    require(block.timestamp > deadline + 24 weeks, "admin cannot claim forgotten funds before 6 months past the deadline");
+
+    //TODO transfer ERC20 to admin
+  }
 }
