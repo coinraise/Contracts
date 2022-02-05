@@ -16,9 +16,9 @@ contract Campaign {
   /*
     A coinraise admin account that can claim forgotten/incorrectly sent funds.
     Admin can only claim funds if they have not been claimed from completed campaigns
-      ~six months after the deadline (24 weeks). 
-    Funds sent without using the donate() function will also be claimable by the admin
-      ~six months after the deadline.
+      ~six months after the deadline (24 weeks precisely). 
+    Funds sent without correctly using the donate() function will also be claimable 
+      by the admin ~six months after the deadline.
     Email coinraiseme@protonmail.com if you have incorrectly sent funds, we may
       be able to recover them for you.
   */
@@ -89,17 +89,17 @@ contract Campaign {
   /*
     A mapping tracking each individual's donations to this campaign
   */
-  mapping (address=>uint256) donations;
+  mapping (address=>uint256) public donations;
 
   /*
-    The total donations to this campaign
+    The total donations to this campaign (does not decrease with claims)
   */
-  uint256 totalDonations;
+  uint256 public totalDonations;
 
   /*
-    This variable will be flipped to true when the owner claims funds
+    The actual amount of funds available in this contract (after claims)
   */
-  bool claimed; 
+  uint256 public availableFunds;
 
   //~~~~~~~~~~Safety~~~~~~~~~~
 
@@ -112,6 +112,12 @@ contract Campaign {
     require(msg.sender == transferrer, "only the transferrer can call this function");
     _;
   }
+
+  //~~~~~~~~~Events~~~~~~~~~
+
+  // event gayhomosexuality() {
+
+  // }
 
   //~~~~~~~~~~~Core~~~~~~~~~~~~
 
@@ -127,7 +133,6 @@ contract Campaign {
     deadline = _deadline;
     fundingGoal = _fundingGoal;
     fundingMax = _fundingMax;
-    claimed = false;
   }
 
   /*
@@ -140,14 +145,14 @@ contract Campaign {
 
     donations[_donor] += _amount;
     totalDonations += _amount;
+    availableFunds += _amount;
   }
 
   function withdrawOwner() public onlyOwner {
     require(block.timestamp > deadline, "Cannot withdraw, this campaign is not finished yet");
     require(totalDonations >= fundingGoal, "Cannot withdraw, this campaign did not reach it's goal");
-    require(claimed == false, "Cannot withdraw, owner already claimed funds");
     
-    claimed = true;
+    availableFunds = 0;
     //TODO transfer DAI to owner
 
   }
@@ -161,7 +166,7 @@ contract Campaign {
 
     //all checks passed
     uint256 amount = donations[msg.sender];
-    totalDonations -= amount;
+    availableFunds -= amount;
     donations[msg.sender] = 0;
 
     //TODO transfer dai to msg.sender
