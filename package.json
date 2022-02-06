@@ -18,5 +18,8 @@
   "homepage": "https://github.com/coinraise/Contracts#readme",
   "dependencies": {
     "openzeppelin-solidity": "^4.4.2"
+  },
+  "devDependencies": {
+    "hardhat": "^2.8.3"
   }
 }

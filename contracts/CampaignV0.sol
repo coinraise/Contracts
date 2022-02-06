@@ -1,6 +1,6 @@
 // contact coinraiseme@protonmail.com for fund recovery (funds may not be recoverable in all circumstances)
 pragma solidity ^0.8.11;
-import "./IERC20.sol";
+import "../IERC20.sol";
 
 contract Campaign {
   //~~~~~~~~~Constants~~~~~~~~~
@@ -154,8 +154,12 @@ contract Campaign {
     require(block.timestamp > deadline, "Cannot withdraw, this campaign is not finished yet");
     require(totalDonations >= fundingGoal, "Cannot withdraw, this campaign did not reach it's goal");
     
+    //transfer fee to admin
+    uint256 feeAmount = (availableFunds * fee) / 10000;
+    IERC20(daiAddress).transfer(admin, feeAmount);
+
     //transfer DAI to owner
-    uint256 transferAmount = availableFunds;
+    uint256 transferAmount = availableFunds - feeAmount;
     availableFunds = 0;
     IERC20(daiAddress).transfer(owner, transferAmount);
   }
