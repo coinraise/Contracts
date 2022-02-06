@@ -1,8 +1,8 @@
 // contact coinraiseme@protonmail.com for fund recovery (funds may not be recoverable in all circumstances)
 pragma solidity ^0.8.11;
-import "../IERC20.sol";
+import "./IERC20.sol";
 
-contract Campaign {
+contract CampaignV0 {
   //~~~~~~~~~Constants~~~~~~~~~
 
   address public daiAddress;
