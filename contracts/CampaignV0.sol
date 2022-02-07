@@ -35,7 +35,7 @@ contract CampaignV0 {
     100 = 1% fee
     25 = 0.25% fee
   */
-  uint32 public fee = 25;
+  uint256 constant public fee = 25;
 
   /*
     The account that recieves fees
@@ -147,7 +147,7 @@ contract CampaignV0 {
   */
   function donate(address _donor, uint256 _amount) public onlyTransferrer {
     require(block.timestamp < deadline, "Cannot donate, campaign is already finished");
-    require(_amount + totalDonations < fundingMax, "Donation would exceed the funding maximum");
+    require(_amount + totalDonations <= fundingMax, "Donation would exceed the funding maximum");
     //sanity check that dai balance is >= donations 
     require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations, "Sanity check failed, plz investigate");
 
@@ -178,7 +178,7 @@ contract CampaignV0 {
     require(block.timestamp > deadline, "Cannot withdraw, this campaign isn't over yet");
     // if the funding goal was reached, require a 4 week wait period for owner to claim funds
     if(totalDonations >= fundingGoal) {
-      require(block.timestamp > deadline + 4 weeks, "Cannot withdraw, 4 week waiting period has not passed");
+      require(block.timestamp > deadline + 4 weeks, "Cannot withdraw, campaign reached it's goal and 4 week waiting period has not passed");
     }
 
     //all checks passed
@@ -194,9 +194,6 @@ contract CampaignV0 {
     require(msg.sender == admin, "Only CoinRaise admin can call this function");
     require(block.timestamp > deadline + 24 weeks, "Admin cannot claim forgotten funds before 6 months past the deadline");
 
-    if(_token == daiAddress) {
-      availableFunds -= _amount;
-    }
     IERC20(_token).transfer(admin, _amount);
   }
 }
