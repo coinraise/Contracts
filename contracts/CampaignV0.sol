@@ -5,14 +5,14 @@ import "./IERC20.sol";
 contract CampaignV0 {
   //~~~~~~~~~Constants~~~~~~~~~
 
-  address public daiAddress;
+  address constant public daiAddress = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
   /*
     A peripheral contract that transferrers DAI to the campaign contracts
     Transfers are sent through the transferrer so users don't need to give
     spending permissions to every campaign contract they want to donate to.
   */
-  address public transferrer;
+  address constant public transferrer = 0x5FbDB2315678afecb367f032d93F642f64180aa3;
 
   /*
     A coinraise admin account that can claim forgotten/incorrectly sent funds.
@@ -23,7 +23,7 @@ contract CampaignV0 {
     Email coinraiseme@protonmail.com if you have incorrectly sent funds, we may
       be able to recover them for you.
   */
-  address public admin;
+  address constant public admin = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
   /*
     The fee percentage that goes to coinraise, scaled up by 100
@@ -127,6 +127,7 @@ contract CampaignV0 {
     require(initialized == false, "Campaign has already been initialized");
     require(_deadline > block.timestamp + 1 weeks, "Deadline must be at least 1 week from current time");
     require(_deadline < block.timestamp + 256 weeks, "Deadline must be within 3 years of the current time");
+    require(_fundingMax >= _fundingGoal, "fundingMax cannot exceed fundingGoal");
     
     //set parameters
     initialized = true;
@@ -148,6 +149,10 @@ contract CampaignV0 {
     donations[_donor] += _amount;
     totalDonations += _amount;
     availableFunds += _amount;
+  }
+
+  function transfer(address _newOwner) public onlyOwner {
+    owner = _newOwner;
   }
 
   function withdrawOwner() public onlyOwner {
