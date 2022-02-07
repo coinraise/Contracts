@@ -1,11 +1,16 @@
 // contact coinraiseme@protonmail.com for fund recovery (funds may not be recoverable in all circumstances)
 pragma solidity ^0.8.11;
 import "./IERC20.sol";
+import "hardhat/console.sol";
 
 contract CampaignV0 {
   //~~~~~~~~~Constants~~~~~~~~~
 
-  address constant public daiAddress = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+  /*
+    TODO: remember to replace this value with the correct version for the network
+    it is being deployed to!!! current network: Test
+  */
+  address constant public daiAddress = 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9;
 
   /*
     A peripheral contract that transferrers DAI to the campaign contracts
@@ -105,12 +110,12 @@ contract CampaignV0 {
   //~~~~~~~~~~Safety~~~~~~~~~~
 
   modifier onlyOwner() {
-    require(msg.sender == owner, "only the owner can call this function");
+    require(msg.sender == owner, "Only the owner can call this function");
     _;
   }
 
   modifier onlyTransferrer() {
-    require(msg.sender == transferrer, "only the transferrer can call this function");
+    require(msg.sender == transferrer, "Only the transferrer can call this function");
     _;
   }
 
@@ -127,7 +132,7 @@ contract CampaignV0 {
     require(initialized == false, "Campaign has already been initialized");
     require(_deadline > block.timestamp + 1 weeks, "Deadline must be at least 1 week from current time");
     require(_deadline < block.timestamp + 256 weeks, "Deadline must be within 3 years of the current time");
-    require(_fundingMax >= _fundingGoal, "fundingMax cannot exceed fundingGoal");
+    require(_fundingMax >= _fundingGoal, "FundingMax cannot exceed fundingGoal");
     
     //set parameters
     initialized = true;
@@ -141,10 +146,10 @@ contract CampaignV0 {
 
   */
   function donate(address _donor, uint256 _amount) public onlyTransferrer {
-    require(block.timestamp >= deadline, "Cannot donate, campaign is already finished");
+    require(block.timestamp < deadline, "Cannot donate, campaign is already finished");
     require(_amount + totalDonations < fundingMax, "Donation would exceed the funding maximum");
     //sanity check that dai balance is >= donations 
-    require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations);
+    require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations, "Sanity check failed, plz investigate");
 
     donations[_donor] += _amount;
     totalDonations += _amount;
@@ -186,8 +191,8 @@ contract CampaignV0 {
   }
 
   function withdrawAdmin(address _token, uint256 _amount) public {
-    require(msg.sender == admin, "only CoinRaise admin can call this function");
-    require(block.timestamp > deadline + 24 weeks, "admin cannot claim forgotten funds before 6 months past the deadline");
+    require(msg.sender == admin, "Only CoinRaise admin can call this function");
+    require(block.timestamp > deadline + 24 weeks, "Admin cannot claim forgotten funds before 6 months past the deadline");
 
     if(_token == daiAddress) {
       availableFunds -= _amount;
