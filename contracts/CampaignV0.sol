@@ -52,6 +52,16 @@ contract CampaignV0 {
   address public owner;
 
   /*
+    The title of this campaign, limited to 128 characters
+  */
+  string public title;
+
+  /*
+    The campaign description, limited to 2000 characters
+  */
+  string public description;
+
+  /*
     The Unix timestamp (in seconds) of this cmpaign's deadline,
       after this time donations are no longer accepted. 
     If the fundingGoal is reached, the owner can withdraw funds at this time. 
@@ -127,15 +137,19 @@ contract CampaignV0 {
 
   //~~~~~~~~~~~Core~~~~~~~~~~~~
 
-  function init(address _owner, uint64 _deadline, uint256 _fundingGoal, uint256 _fundingMax) public {
+  function init(address _owner, uint64 _deadline, uint256 _fundingGoal, uint256 _fundingMax, string calldata _title, string calldata _description) public {
     // safety checks
     require(initialized == false, "Campaign has already been initialized");
     require(_deadline > block.timestamp + 1 weeks, "Deadline must be at least 1 week from current time");
     require(_deadline < block.timestamp + 256 weeks, "Deadline must be within 3 years of the current time");
     require(_fundingMax >= _fundingGoal, "FundingMax cannot exceed fundingGoal");
+    require(bytes(_title).length != 0, "Cannot have empty string for title");
+    require(bytes(_description).length != 0, "Cannot have empty string for description");
     
     //set parameters
     initialized = true;
+    title = _title;
+    description = _description;
     owner = _owner;
     deadline = _deadline;
     fundingGoal = _fundingGoal;
@@ -148,12 +162,12 @@ contract CampaignV0 {
   function donate(address _donor, uint256 _amount) public onlyTransferrer {
     require(block.timestamp < deadline, "Cannot donate, campaign is already finished");
     require(_amount + totalDonations <= fundingMax, "Donation would exceed the funding maximum");
-    //sanity check that dai balance is >= donations 
-    require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations, "Sanity check failed, plz investigate");
 
     donations[_donor] += _amount;
     totalDonations += _amount;
     availableFunds += _amount;
+    //sanity check that dai balance is >= donations 
+    require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations, "Sanity check failed, plz investigate");
   }
 
   function transfer(address _newOwner) public onlyOwner {

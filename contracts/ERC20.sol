@@ -55,7 +55,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     constructor(string memory name_, string memory symbol_, address owner) {
         _name = name_;
         _symbol = symbol_;
-        _mint(owner, 10000000000000000000000000000000000000000000000000000);
+        _mint(owner, 10000000000000000000000000000000000000000);
     }
 
     /**
