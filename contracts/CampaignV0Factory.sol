@@ -1,7 +1,6 @@
 pragma solidity ^0.8.11;
 import "./Clones.sol";
 import "./CampaignV0.sol";
-import "hardhat/console.sol";
 
 contract CampaignV0Factory {
   address public campaignV0Implementation;

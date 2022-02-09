@@ -1,7 +1,6 @@
 // contact coinraiseme@protonmail.com for fund recovery (funds may not be recoverable in all circumstances)
 pragma solidity ^0.8.11;
 import "./IERC20.sol";
-import "hardhat/console.sol";
 
 contract CampaignV0 {
   //~~~~~~~~~Constants~~~~~~~~~
@@ -131,9 +130,7 @@ contract CampaignV0 {
 
   //~~~~~~~~~Events~~~~~~~~~
 
-  // event gayhomosexuality() {
-
-  // }
+  event donation(address donor, uint256 amount);
 
   //~~~~~~~~~~~Core~~~~~~~~~~~~
 
@@ -168,6 +165,7 @@ contract CampaignV0 {
     availableFunds += _amount;
     //sanity check that dai balance is >= donations 
     require(IERC20(daiAddress).balanceOf(address(this)) >= totalDonations, "Sanity check failed, plz investigate");
+    emit donation(_donor, _amount);
   }
 
   function transfer(address _newOwner) public onlyOwner {

@@ -1,7 +1,6 @@
 pragma solidity ^0.8.11;
 import "./ERC20.sol";
 import "./CampaignV0.sol";
-import "hardhat/console.sol";
 
 /*
   donates funds to a specified campaign on behalf of the sender so the
