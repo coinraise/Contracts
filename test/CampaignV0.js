@@ -308,7 +308,7 @@ describe("Campaign Contract", () => {
     evmTime = deadlineEpoch + weeks255InSeconds;
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const donorPreWithdrawBal = await mockDai.balanceOf(acct2.address);
-    await clonedCampaignContract.connect(acct2).withdrawDoner();
+    await clonedCampaignContract.connect(acct2).withdrawDonor();
     const donorPostWithdrawBal = await mockDai.balanceOf(acct2.address);
     expect(donorPostWithdrawBal.sub(donorPreWithdrawBal)).to.equal("200");
     const ownerPreWithdrawBal = await mockDai.balanceOf(owner.address);
@@ -330,7 +330,7 @@ describe("Campaign Contract", () => {
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     await clonedCampaignContract.transfer(acct2.address);
     const donorPreWithdrawBal = await mockDai.balanceOf(owner.address);
-    await clonedCampaignContract.withdrawDoner();
+    await clonedCampaignContract.withdrawDonor();
     const donorPostWithdrawBal = await mockDai.balanceOf(owner.address);
     expect(donorPostWithdrawBal.sub(donorPreWithdrawBal)).to.equal("600");
     expect(await clonedCampaignContract.availableFunds()).to.equal("400");
@@ -353,7 +353,7 @@ describe("Campaign Contract", () => {
     await transferrer.donate(cloneAddress, "420")
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     await expect(
-      clonedCampaignContract.withdrawDoner()
+      clonedCampaignContract.withdrawDonor()
     ).to.be.revertedWith("Cannot withdraw, this campaign isn't over yet");
   })
 
@@ -368,7 +368,7 @@ describe("Campaign Contract", () => {
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     await expect(
-      clonedCampaignContract.withdrawDoner()
+      clonedCampaignContract.withdrawDonor()
     ).to.be.revertedWith("Cannot withdraw, campaign reached it's goal and 4 week waiting period has not passed");
   })
 
@@ -383,7 +383,7 @@ describe("Campaign Contract", () => {
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     const balanceBeforeWithdraw = await mockDai.balanceOf(owner.address);
-    clonedCampaignContract.withdrawDoner()
+    clonedCampaignContract.withdrawDonor()
     const balanceAfterWithdraw = await mockDai.balanceOf(owner.address);
     expect(balanceAfterWithdraw.sub(balanceBeforeWithdraw)).to.equal("419");
   })
@@ -399,7 +399,7 @@ describe("Campaign Contract", () => {
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     const balanceBeforeWithdraw = await mockDai.balanceOf(owner.address);
-    clonedCampaignContract.withdrawDoner()
+    clonedCampaignContract.withdrawDonor()
     const balanceAfterWithdraw = await mockDai.balanceOf(owner.address);
     expect(balanceAfterWithdraw.sub(balanceBeforeWithdraw)).to.equal("420");
   })

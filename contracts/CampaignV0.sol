@@ -186,7 +186,7 @@ contract CampaignV0 {
     IERC20(daiAddress).transfer(owner, transferAmount);
   }
 
-  function withdrawDoner() public {
+  function withdrawDonor() public {
     require(block.timestamp > deadline, "Cannot withdraw, this campaign isn't over yet");
     // if the funding goal was reached, require a 4 week wait period for owner to claim funds
     if(totalDonations >= fundingGoal) {
