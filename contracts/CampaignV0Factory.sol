@@ -4,7 +4,7 @@ import "./CampaignV0.sol";
 
 contract CampaignV0Factory {
   address public campaignV0Implementation;
-  mapping (address => bool) public initializedCampaigns;
+  mapping (address => uint64) public initializedCampaigns;
   address[] public campaigns;
 
   function getAllCampaigns() public view returns (address[] memory) {
@@ -21,7 +21,7 @@ contract CampaignV0Factory {
     address clone = Clones.clone(campaignV0Implementation);
     CampaignV0(clone).init(msg.sender, _deadline, _fundingGoal, _fundingMax, _title, _description);
     emit campaignCreated(clone, msg.sender);
-    initializedCampaigns[clone] = true;
+    initializedCampaigns[clone] = uint64(block.timestamp);
     campaigns.push(clone);
     return clone;
   }

@@ -149,8 +149,11 @@ contract CampaignV0 {
     description = _description;
     owner = _owner;
     deadline = _deadline;
-    fundingGoal = _fundingGoal;
-    fundingMax = _fundingMax;
+    //we have to adjust our funding targets for the admin fee, 
+    //so the campaign owner receives the actual amount they input
+    //target = goal / (1 - feeRate) (0.9975)
+    fundingGoal = (_fundingGoal * 10000) / 9975;
+    fundingMax = (_fundingMax * 10000) / 9975;
   }
 
   /*

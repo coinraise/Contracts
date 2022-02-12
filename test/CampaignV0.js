@@ -57,7 +57,7 @@ describe("Periphery Contracts", () => {
     expect(await clonedCampaignContract.admin()).to.equal(owner.address);
     expect(await clonedCampaignContract.title()).to.equal("TEST_TITLE");
     expect(await clonedCampaignContract.description()).to.equal("TEST_DESCRIPTION");
-    expect(await campaignV0Factory.initializedCampaigns(cloneAddress)).to.equal(true);
+    expect(parseInt((await campaignV0Factory.initializedCampaigns(cloneAddress)).toString())).to.approximately(Math.floor((new Date().getTime() / 1000)), 20);
     const allCampaigns = await campaignV0Factory.getAllCampaigns();
     expect(allCampaigns.length).to.equal(1);
     expect(allCampaigns[0]).to.equal(cloneAddress);
@@ -132,6 +132,21 @@ describe("Campaign Contract", () => {
     ).to.be.revertedWith("FundingMax cannot exceed fundingGoal");
   })
 
+  it("create should adjust the true target/limit for fees", async () => {
+    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "778", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
+    const receipt = await createCampaignTxRes.wait();
+    const cloneAddress = receipt.events[0].args.campaign;
+    const clonedCampaignContract = campaignV0.attach(cloneAddress);
+    const trueGoal = Math.floor((778 * 10000) / 9975);
+    const trueMax = Math.floor((1000 * 10000) / 9975);
+    expect(trueGoal).to.equal(779)//expect it to round down
+
+    expect(await clonedCampaignContract.fundingGoal()).to.equal(trueGoal);
+    expect(await clonedCampaignContract.fundingMax()).to.equal(trueMax)
+  })
+
   it("init should fail if already initialized", async () => {
     const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
     const deadlineEpoch = evmTime + weeks255InSeconds;
@@ -176,8 +191,9 @@ describe("Campaign Contract", () => {
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
+    const trueFundingLimit = Math.floor((690 * 10000) / 9975)
     await expect(
-      transferrer.donate(cloneAddress, "691")
+      transferrer.donate(cloneAddress, trueFundingLimit + 1)
     ).to.be.revertedWith("Donation would exceed the funding maximum");
   })
 
@@ -187,7 +203,8 @@ describe("Campaign Contract", () => {
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
-    await transferrer.donate(cloneAddress, "690");
+    const trueFundingLimit = Math.floor((690 * 10000) / 9975)
+    await transferrer.donate(cloneAddress, trueFundingLimit);
     await expect(
       transferrer.donate(cloneAddress, "1")
     ).to.be.revertedWith("Donation would exceed the funding maximum");
@@ -199,10 +216,11 @@ describe("Campaign Contract", () => {
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
-    await transferrer.donate(cloneAddress, "690")
+    const trueFundingLimit = Math.floor((690 * 10000) / 9975);
+    await transferrer.donate(cloneAddress, trueFundingLimit);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
-    expect(await clonedCampaignContract.totalDonations()).to.equal("690");
-    expect(await clonedCampaignContract.availableFunds()).to.equal("690");
+    expect(await clonedCampaignContract.totalDonations()).to.equal("691");
+    expect(await clonedCampaignContract.availableFunds()).to.equal("691");
   })
 
   it("transfer should fail if not called by owner", async () => {
@@ -264,7 +282,8 @@ describe("Campaign Contract", () => {
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
-    await transferrer.donate(cloneAddress, "420")
+    const trueFundingLimit = Math.floor((420 * 10000) / 9975)
+    await transferrer.donate(cloneAddress, trueFundingLimit)
     const preWithdrawBal = await mockDai.balanceOf(owner.address);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     evmTime = deadlineEpoch + 1;
@@ -272,16 +291,17 @@ describe("Campaign Contract", () => {
     await clonedCampaignContract.withdrawOwner();
     const postWithdrawBal = await mockDai.balanceOf(owner.address);
     expect(await clonedCampaignContract.availableFunds()).to.equal("0");
-    expect(postWithdrawBal.sub(preWithdrawBal)).to.equal("420");
+    expect(postWithdrawBal.sub(preWithdrawBal)).to.equal(trueFundingLimit);
   })
 
   it("withdrawOwner should succeed with the correct fee amount", async () => {
     const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
     const deadlineEpoch = evmTime + weeks255InSeconds;
-    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "400", "690", "TEST_TITLE", "TEST_DESCRIPTION");
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "799", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
-    await transferrer.donate(cloneAddress, "400")
+    const trueFundingLimit = Math.floor((799 * 10000) / 9975)
+    await transferrer.donate(cloneAddress, trueFundingLimit)
     const preWithdrawBal = await mockDai.balanceOf(acct2.address);
     const adminPreWithdrawBal = await mockDai.balanceOf(owner.address);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
@@ -292,8 +312,8 @@ describe("Campaign Contract", () => {
     const postWithdrawBal = await mockDai.balanceOf(acct2.address);
     const adminPostWithdrawBal = await mockDai.balanceOf(owner.address);
     expect(await clonedCampaignContract.availableFunds()).to.equal("0");
-    expect(postWithdrawBal.sub(preWithdrawBal)).to.equal("399");
-    expect(adminPostWithdrawBal.sub(adminPreWithdrawBal)).to.equal("1");
+    expect(postWithdrawBal.sub(preWithdrawBal)).to.equal("799");
+    expect(adminPostWithdrawBal.sub(adminPreWithdrawBal)).to.equal("2");
   })
 
   it("withdrawOwner should succeed with a partial withdraw (donors withdrew part 4 weeks after completion)", async () => {
@@ -302,25 +322,25 @@ describe("Campaign Contract", () => {
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "400", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
-    await transferrer.donate(cloneAddress, "200")
-    await transferrer.connect(acct2).donate(cloneAddress, "200");
+    await transferrer.donate(cloneAddress, "300")
+    await transferrer.connect(acct2).donate(cloneAddress, "300");
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     evmTime = deadlineEpoch + weeks255InSeconds;
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const donorPreWithdrawBal = await mockDai.balanceOf(acct2.address);
     await clonedCampaignContract.connect(acct2).withdrawDonor();
     const donorPostWithdrawBal = await mockDai.balanceOf(acct2.address);
-    expect(donorPostWithdrawBal.sub(donorPreWithdrawBal)).to.equal("200");
+    expect(donorPostWithdrawBal.sub(donorPreWithdrawBal)).to.equal("300");
     const ownerPreWithdrawBal = await mockDai.balanceOf(owner.address);
     await clonedCampaignContract.withdrawOwner();
     const ownerPostWithdrawBal = await mockDai.balanceOf(owner.address);
-    expect(ownerPostWithdrawBal.sub(ownerPreWithdrawBal)).to.equal("200")
+    expect(ownerPostWithdrawBal.sub(ownerPreWithdrawBal)).to.equal("300")
   })
 
   it("withdrawOwner should succeed with a partial withdraw with the correct fee amount", async () => {
     const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
     const deadlineEpoch = evmTime + weeks255InSeconds;
-    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "1000", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "900", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
     await transferrer.donate(cloneAddress, "600")
@@ -363,7 +383,8 @@ describe("Campaign Contract", () => {
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
-    await transferrer.donate(cloneAddress, "420")
+    const trueFundingLimit = Math.floor((420 * 10000) / 9975)
+    await transferrer.donate(cloneAddress, trueFundingLimit)
     evmTime = deadlineEpoch + 4 * 7 * 24 * 60 * 60 - 1;//almost 4 weeks
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
