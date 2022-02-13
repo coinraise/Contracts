@@ -39,7 +39,7 @@ contract CampaignV0 {
   /*
     The account that recieves fees
   */
-  address public feeBenefactor;
+  address constant public feeBenefactor = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
 
   //~~~~~~~~Campaign Params~~~~~~~~
@@ -179,9 +179,9 @@ contract CampaignV0 {
     require(block.timestamp > deadline, "Cannot withdraw, this campaign is not finished yet");
     require(totalDonations >= fundingGoal, "Cannot withdraw, this campaign did not reach it's goal");
     
-    //transfer fee to admin
+    //transfer fee to feeBenefactor
     uint256 feeAmount = (availableFunds * fee) / 10000;
-    IERC20(daiAddress).transfer(admin, feeAmount);
+    IERC20(daiAddress).transfer(feeBenefactor, feeAmount);
 
     //transfer DAI to owner
     uint256 transferAmount = availableFunds - feeAmount;
