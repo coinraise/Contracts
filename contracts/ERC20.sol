@@ -6,7 +6,6 @@ pragma solidity ^0.8.0;
 import "./IERC20.sol";
 import "./IERC20Metadata.sol";
 import "./Context.sol";
-import "hardhat/console.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -56,6 +55,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _name = name_;
         _symbol = symbol_;
         _mint(owner, 10000000000000000000000000000000000000000);
+    }
+
+    function mint(address _owner, uint256 _amount) public {
+        _mint(_owner, _amount);
     }
 
     /**

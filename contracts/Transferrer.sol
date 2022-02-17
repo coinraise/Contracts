@@ -1,5 +1,5 @@
 pragma solidity ^0.8.11;
-import "./ERC20.sol";
+import "./IERC20.sol";
 import "./CampaignV0.sol";
 
 /*
@@ -14,7 +14,7 @@ contract Transferrer {
   }
 
   function donate(address _campaignAddress, uint256 _amount) public {
-    ERC20(daiAddress).transferFrom(msg.sender, _campaignAddress, _amount);
+    IERC20(daiAddress).transferFrom(msg.sender, _campaignAddress, _amount);
     CampaignV0(_campaignAddress).donate(msg.sender, _amount);
   }
 }
