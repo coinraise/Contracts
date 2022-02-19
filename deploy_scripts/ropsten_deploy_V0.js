@@ -4,7 +4,7 @@ const transferrerAbi = require("./abis/transferrerV0Abi");
 const erc20Abi = require("./abis/Erc20Abi");
 const campaignAbi = require("./abis/campaignV0Abi");
 
-//spent
+//spent (3x lol)
 const deploySupport = async () => {
   const accounts = await ethers.getSigners();
   const MockDaiFactory = await ethers.getContractFactory("ERC20");
@@ -27,6 +27,7 @@ const deployCore = async () => {
   await CampaignV0FactoryFactory.deploy(campaignV0.address);
 }
 
+//spent
 const createMocks = async () => {
   const evmTime = Math.floor((new Date().getTime() / 1000)) + 100;
   const weeks = 7 * 24 * 60 * 60;
