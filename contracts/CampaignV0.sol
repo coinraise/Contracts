@@ -138,7 +138,7 @@ contract CampaignV0 {
     // safety checks
     require(initialized == false, "Campaign has already been initialized");
     require(_deadline > block.timestamp + 1 weeks, "Deadline must be at least 1 week from current time");
-    require(_deadline < block.timestamp + 256 weeks, "Deadline must be within 3 years of the current time");
+    require(_deadline < block.timestamp + 156 weeks, "Deadline must be within 3 years of the current time");
     require(_fundingMax >= _fundingGoal, "FundingMax cannot exceed fundingGoal");
     require(bytes(_title).length != 0, "Cannot have empty string for title");
     require(bytes(_description).length != 0, "Cannot have empty string for description");

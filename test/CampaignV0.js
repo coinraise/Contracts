@@ -45,8 +45,8 @@ describe("Periphery Contracts", () => {
   })
 
   it("create via clonefactory should succeed", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = Math.floor((new Date().getTime() / 1000)) + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = Math.floor((new Date().getTime() / 1000)) + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -125,16 +125,16 @@ describe("Campaign Contract", () => {
   })
 
   it("create should fail with a funding max lower than funding goal", async () => {
-    const weeks255 = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255;
+    const weeks155 = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155;
     await expect(
       campaignV0Factory.createCampaign(deadlineEpoch, "690", "420", "TEST_TITLE", "TEST_DESCRIPTION")
     ).to.be.revertedWith("FundingMax cannot exceed fundingGoal");
   })
 
   it("create should adjust the true target/limit for fees", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "778", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -148,8 +148,8 @@ describe("Campaign Contract", () => {
   })
 
   it("init should fail if already initialized", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -160,8 +160,8 @@ describe("Campaign Contract", () => {
   })
 
   it("donate should fail if called directly", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -172,8 +172,8 @@ describe("Campaign Contract", () => {
   })
 
   it("donate should fail if deadline is passed", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -186,8 +186,8 @@ describe("Campaign Contract", () => {
   })
 
   it("donate should fail if funding max is reached", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -198,8 +198,8 @@ describe("Campaign Contract", () => {
   })
 
   it("donate should fail if funding max is reached via multiple donos", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -211,8 +211,8 @@ describe("Campaign Contract", () => {
   })
 
   it("donate should succeed if everything is koo", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -224,8 +224,8 @@ describe("Campaign Contract", () => {
   })
 
   it("transfer should fail if not called by owner", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -237,8 +237,8 @@ describe("Campaign Contract", () => {
   })
 
   it("transfer should succeed if called by owner", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -249,8 +249,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should fail if campaign is not finished", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -262,8 +262,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should fail if campaign didn't reach it's goal", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -277,8 +277,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should succeed with a full withdraw", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -295,8 +295,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should succeed with the correct fee amount", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "799", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -317,15 +317,15 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should succeed with a partial withdraw (donors withdrew part 4 weeks after completion)", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "400", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
     await transferrer.donate(cloneAddress, "300")
     await transferrer.connect(acct2).donate(cloneAddress, "300");
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
-    evmTime = deadlineEpoch + weeks255InSeconds;
+    evmTime = deadlineEpoch + weeks155InSeconds;
     await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
     const donorPreWithdrawBal = await mockDai.balanceOf(acct2.address);
     await clonedCampaignContract.connect(acct2).withdrawDonor();
@@ -338,8 +338,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should succeed with a partial withdraw with the correct fee amount", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "900", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -365,8 +365,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawDonor should fail if campaign is not finished", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -378,8 +378,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawDonor should fail if the campaign reached it's goal", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -394,8 +394,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawDonor should succeed with the correct amount if the campaign didn't reach it's goal", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -410,8 +410,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawDonor should succeed with the correct amount if the campaign reached it's goal, but the owner hasn't withdrawn for 4 weeks", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -426,8 +426,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawAdmin should fail if called by a non-admin", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -440,8 +440,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawAdmin should fail if the campaign isn't 24 weeks past deadline", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -457,8 +457,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawAdmin should succeed if the campaign is 24 weeks past deadline", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
@@ -475,8 +475,8 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawAdmin should succeed withdrawing random shitcoins that were accidentally deposited", async () => {
-    const weeks255InSeconds = 255 * 7 * 24 * 60 * 60;
-    const deadlineEpoch = evmTime + weeks255InSeconds;
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
     const receipt = await createCampaignTxRes.wait();
     const cloneAddress = receipt.events[0].args.campaign;
