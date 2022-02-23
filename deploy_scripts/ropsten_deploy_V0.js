@@ -43,12 +43,12 @@ const createMocks = async () => {
     evmTime + (1 * weeks) + 10000,
     "1000000000000000000000", 
     "2000000000000000000000", 
-    "Hillary Clinton's special fund to exterminate the deplorables",
-    "The fatherland can never reach it's full potential with all these deplorables, I say we ship them off to Madigascar.",
+    "Charity for special needs children who say twitch memes out loud in real life",
+    "pepeHands",
   );
   receipt = await receipt.wait();
   campaignAddress = receipt.events[0].args.campaign;
   await transferrer.donate(campaignAddress, "420000000000000000000");
 }
 
-createMocks();
+deploySupport();
