@@ -3,10 +3,11 @@ const { ethers } = require("hardhat");
 const hre = require("hardhat");
 
 //const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";//actual
-const daiAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";//mock
+const daiAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";//mock
 
 describe("Periphery Contracts", () => {
   let owner;
+  let acct2;
   let Transferrer;
   let CampaignV0;
   let CampaignV0Factory;
@@ -17,7 +18,7 @@ describe("Periphery Contracts", () => {
   let mockDai;
 
   before(async () => {
-    [owner] = await ethers.getSigners();
+    [owner, acct2] = await ethers.getSigners();
     MockDai = await ethers.getContractFactory("ERC20");
     Transferrer = await ethers.getContractFactory("Transferrer");
     CampaignV0 = await ethers.getContractFactory("CampaignV0");
@@ -25,6 +26,7 @@ describe("Periphery Contracts", () => {
     transferrer = await Transferrer.deploy(daiAddress);
     campaignV0 = await CampaignV0.deploy();
     campaignV0Factory = await CampaignV0Factory.deploy(campaignV0.address);
+    await (await campaignV0Factory.setFee("25")).wait();
     mockDai = await MockDai.deploy("DAI", "DAI", owner.address);
     await mockDai.approve(transferrer.address, "10000000000000000000000000000000000000000000000000000");
   })
@@ -54,13 +56,40 @@ describe("Periphery Contracts", () => {
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     expect(await clonedCampaignContract.daiAddress()).to.equal(daiAddress);
     expect(await clonedCampaignContract.transferrer()).to.equal(transferrer.address);
-    expect(await clonedCampaignContract.admin()).to.equal(owner.address);
     expect(await clonedCampaignContract.title()).to.equal("TEST_TITLE");
     expect(await clonedCampaignContract.description()).to.equal("TEST_DESCRIPTION");
     expect(parseInt((await campaignV0Factory.initializedCampaigns(cloneAddress)).toString())).to.approximately(Math.floor((new Date().getTime() / 1000)), 20);
     const allCampaigns = await campaignV0Factory.getAllCampaigns();
     expect(allCampaigns.length).to.equal(1);
     expect(allCampaigns[0]).to.equal(cloneAddress);
+  })
+
+  it("transfer benefactor should succeed", async () => {
+    const benefactor1 = await campaignV0Factory.feeBenefactor();
+    await (await campaignV0Factory.transferBenefactor(acct2.address)).wait();
+    const benefactor2 = await campaignV0Factory.feeBenefactor();
+    expect(benefactor1).not.to.equal(benefactor2);
+    await (await campaignV0Factory.transferBenefactor(owner.address)).wait();
+  })
+
+  it("transfer benefactor should fail if not called by admin", async () => {
+    await expect(
+      campaignV0Factory.connect(acct2).transferBenefactor(owner.address)
+    ).to.be.revertedWith("Only the admin can call this function");
+  })
+
+  it("transfer admin should succed", async () => {
+    const admin1 = await campaignV0Factory.admin();
+    await (await campaignV0Factory.transferAdmin(acct2.address));
+    const admin2 = await campaignV0Factory.admin();
+    expect(admin1).not.to.equal(admin2);
+    await (await campaignV0Factory.connect(acct2).transferAdmin(owner.address)).wait();
+  })
+  
+  it("transfer admin should fail if not called by admin", async () => {
+    await expect(
+      campaignV0Factory.connect(acct2).transferAdmin(owner.address)
+    ).to.be.revertedWith("Only the admin can call this function");
   })
 })
 
@@ -87,6 +116,7 @@ describe("Campaign Contract", () => {
     transferrer = await Transferrer.deploy(daiAddress);
     campaignV0 = await CampaignV0.deploy();
     campaignV0Factory = await CampaignV0Factory.deploy(campaignV0.address);
+    await (await campaignV0Factory.setFee("25")).wait();
     mockDai = await MockDai.deploy("DAI", "DAI", owner.address);//0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
     await mockDai.approve(transferrer.address, "10000000000000000000000000000000000000000000000000000");
     await mockDai.connect(acct2).approve(transferrer.address, "10000000000000000000000000000000000000000000000000000");
@@ -147,6 +177,32 @@ describe("Campaign Contract", () => {
     expect(await clonedCampaignContract.fundingMax()).to.equal(trueMax)
   })
 
+  it("create should not adjust the target/limit if there are no fees", async () => {
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
+    await (await campaignV0Factory.setFee("0")).wait();
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "778", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
+    const receipt = await createCampaignTxRes.wait();
+    const cloneAddress = receipt.events[0].args.campaign;
+    const clonedCampaignContract = campaignV0.attach(cloneAddress);
+
+    expect(await clonedCampaignContract.fundingGoal()).to.equal("778");
+    expect(await clonedCampaignContract.fundingMax()).to.equal("1000");
+    await (await campaignV0Factory.setFee("25")).wait();
+  })
+
+  it("fee should not change on an existing campaign if fee is updated in factory", async () => {
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
+    await (await campaignV0Factory.setFee("0")).wait();
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "778", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
+    const receipt = await createCampaignTxRes.wait();
+    const cloneAddress = receipt.events[0].args.campaign;
+    const clonedCampaignContract = campaignV0.attach(cloneAddress);
+    await (await campaignV0Factory.setFee("25")).wait();
+    expect(await clonedCampaignContract.fee()).to.equal("0");
+  })
+
   it("init should fail if already initialized", async () => {
     const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
     const deadlineEpoch = evmTime + weeks155InSeconds;
@@ -155,7 +211,7 @@ describe("Campaign Contract", () => {
     const cloneAddress = receipt.events[0].args.campaign;
     const clonedCampaignContract = campaignV0.attach(cloneAddress);
     await expect(
-      clonedCampaignContract.init(owner.address, deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION")
+      clonedCampaignContract.init(owner.address, deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION", "25")
     ).to.be.revertedWith("Campaign has already been initialized");
   })
 
@@ -295,6 +351,28 @@ describe("Campaign Contract", () => {
   })
 
   it("withdrawOwner should succeed with the correct fee amount", async () => {
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "799", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
+    const receipt = await createCampaignTxRes.wait();
+    const cloneAddress = receipt.events[0].args.campaign;
+    const trueFundingLimit = Math.floor((799 * 10000) / 9975)
+    await transferrer.donate(cloneAddress, trueFundingLimit)
+    const preWithdrawBal = await mockDai.balanceOf(acct2.address);
+    const adminPreWithdrawBal = await mockDai.balanceOf(owner.address);
+    const clonedCampaignContract = campaignV0.attach(cloneAddress);
+    evmTime = deadlineEpoch + 1;
+    await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
+    await clonedCampaignContract.transfer(acct2.address);
+    await clonedCampaignContract.connect(acct2).withdrawOwner();
+    const postWithdrawBal = await mockDai.balanceOf(acct2.address);
+    const adminPostWithdrawBal = await mockDai.balanceOf(owner.address);
+    expect(await clonedCampaignContract.availableFunds()).to.equal("0");
+    expect(postWithdrawBal.sub(preWithdrawBal)).to.equal("799");
+    expect(adminPostWithdrawBal.sub(adminPreWithdrawBal)).to.equal("2");
+  })
+
+  it("withdrawOwner should transfer fees to a new owner", async () => {
     const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
     const deadlineEpoch = evmTime + weeks155InSeconds;
     const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "799", "1000", "TEST_TITLE", "TEST_DESCRIPTION");
@@ -491,4 +569,24 @@ describe("Campaign Contract", () => {
     const postWithdrawBal = await mockDai.balanceOf(owner.address);
     expect(postWithdrawBal.sub(preWithdrawBal)).to.equal("420");
   })
+
+  it("withdrawAdmin should get the admin account from the factory", async () => {
+    const weeks155InSeconds = 155 * 7 * 24 * 60 * 60;
+    const deadlineEpoch = evmTime + weeks155InSeconds;
+    const createCampaignTxRes = await campaignV0Factory.createCampaign(deadlineEpoch, "420", "690", "TEST_TITLE", "TEST_DESCRIPTION");
+    const receipt = await createCampaignTxRes.wait();
+    const cloneAddress = receipt.events[0].args.campaign;
+    await mockDai.transfer(cloneAddress, "420")
+    evmTime = deadlineEpoch + 24 * 7 * 24 * 60 * 60 + 1;//just under 24 weeks
+    await hre.network.provider.send("evm_setNextBlockTimestamp", [evmTime]);
+    await (await campaignV0Factory.transferAdmin(acct2.address)).wait();
+    const clonedCampaignContract = campaignV0.attach(cloneAddress);
+    const contractDaiBalance = await mockDai.balanceOf(cloneAddress);
+    const preWithdrawBal = await mockDai.balanceOf(acct2.address);
+    await clonedCampaignContract.connect(acct2).withdrawAdmin(daiAddress, contractDaiBalance);
+    const postWithdrawBal = await mockDai.balanceOf(acct2.address);
+    expect(postWithdrawBal.sub(preWithdrawBal)).to.equal("420");
+    await (await campaignV0Factory.connect(acct2).transferAdmin(acct2.address)).wait();
+  })
+
 })
