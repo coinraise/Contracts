@@ -8,22 +8,16 @@ contract CampaignV0 {
 
   /*
     TODO: remember to replace this value with the correct version for the network
-    it is being deployed to!!! current network: Test
+    it is being deployed to!!! current network: Eth-Mainnet
   */
-  address constant public daiAddress = 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9;
+  address constant public daiAddress = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
   /*
     A peripheral contract that transferrers DAI to the campaign contracts
     Transfers are sent through the transferrer so users don't need to give
     spending permissions to every campaign contract they want to donate to.
   */
-  address constant public transferrer = 0x5FbDB2315678afecb367f032d93F642f64180aa3;
-
-  /*
-    The fee percentage that goes to coinraise, scaled up by 100
-    100 = 1% fee
-    25 = 0.25% fee
-  */
+  address constant public transferrer = 0x4cD69C7e50D70F5B1Fb336eBED4301DfE020B544;
 
   //~~~~~~~~Campaign Params~~~~~~~~
 
